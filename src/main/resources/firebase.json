@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "drinkingmaster-96b6c",
+  "private_key_id": "ae3e3c6a63370ba3afde521738b7da5288732dd9",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQCjzaugf6su9mSS\nAEMlny762hirM7zMbsK45Wef+89n1B1KPlMZ3dO/mB37yN3lQjKMnil7hNM9IfN/\nndhd8hecJaOsaJjwoHWElnKGjUkm2SdzMmYVnZf5yOOp0ItYSsEI6SyrmAR2Jhut\nFcE8Ua5uTxYL6KYKA2CVO4hnz+0cwtCbx4/VZbER/h+GsUjPVQEGnanNACzQI5ky\nOAFECv7jJdNVmcTtkBFH+YQmttrPng+6EzlRXaD9T5RCDNkU+P3lQ50OP6AStIZm\nw8teZXvZutEuDpSBbMgzzvkAVB9mPPjvGtYVJrSHIDOaVJ5lvUZiXLV3sn5QxZPv\n5F1PhQe/AgMBAAECggEAI90rH6f0RgMCgAj4qqsQsTHBRvK7+pKhpbPsnVWX0qbZ\nhuDgdwBflUpr/i27j6+Pu8QBVx781Ryy4JUhw2f3DWQcUupP2hd3w4DhMF6Mzqmq\n/ojhWwg3NyRp3EthxwIPA7Fx61wMVgX/90SVG2zS4SoFrLPSbszQf7waIIig5LPU\niP+hDdgPqp6WWPmNmuo+0DIikHlr+tp9SBDQj9ZznT/MXxXV/xZjBEreJsTscL4n\nr2FD9dho6DUmL54Uxo12HkoI95pqk0p3VpabhVW0c4br88D4aBzLQfJNPP03+tPP\npYD6I6AwPSIsgR++ESr5C6PBmNNTPLqN47al8HxaeQKBgQDmQRMghrjxxvz5I2g7\n0rSK3ZNBTbvLDNr+IwNVY8UO+mkaOveg4dbA92CSMAGruR0V92VvWU4VOzveWw9/\ncWq3031zAfAYLKR08xtvmWrY00YrntPWN8AzaZHXRG49X8v1ExZbjhmLQYLyQqJu\niNoKaWCqXQMDDjplNK0GBmml/QKBgQC2HniGHhLuYYh5aN8Qp1mDTR2y1F5nXCeL\nQp8nJT8BvNK+3mYIe52WRmT7/y5NcPuJEUBYrUhbIWZ3v6Cx7CoMjfrqWC5zVVF6\n0c4t61C0mCyK9uMIxbgCuwvQ6MKFzezOGVf2fl/2q1F5KWBh+s5kaDn7pMISFiQo\nZJtGPrxzawKBgQC/0I5illkT8bVkxz5aN9n3pUa7LEq5iOgWtoxcYlUTeUB9fYo1\nGG6TKoHkxuFdcUTtu79g14DY5xOk1S8/9/fzU9g6Ku8c9HO8iZndim0cXEUkqZfH\n6YHQUq4QKw27S0bZzyDc/LAC9nxj3Wb7tj4OVmMVCY8syHmVPiC12DnC8QKBgQCf\nQG3r+YhcY3VPlWDZ0zz3EAwUQJh8kZ0SraM2O9+oyVEQDrHyYQYgTlYn9bCrj0yl\nQyydXomTBtXviOYgL39lkxICsjGMMOMbHzPH+6mLAjaRHerR1PNfj+h5OdA/6R5V\n6tt8dG296XlJFeFuTD8Glg19+0ipQCtGFxOgjWOFGQKBgQCYE+MRZSmoLx9Fa6st\nvpLDLJljWQHq532KomU8GIKrSfhm493wuXj9f8SoVNsS3yqrOU/+IqFa+NMNbh4u\nLleC+bkFqa4PMsT5h0DsUM3NJWIH+ILFCVQw2+zhU4lgHi+dWdMfMC0QnpspTKZg\ntlCTADDIxZ2t6oiyi08l52w8UA==\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-mkl7l@drinkingmaster-96b6c.iam.gserviceaccount.com",
+  "client_id": "114556938931722413536",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-mkl7l%40drinkingmaster-96b6c.iam.gserviceaccount.com"
+}

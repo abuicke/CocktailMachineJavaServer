@@ -1,6 +1,7 @@
-package lt.soe.cocktailmachineserver;
+package lt.soe.cocktailmachineserver.firebase;
 
 import com.google.firebase.database.*;
+import lt.soe.cocktailmachineserver.cocktail.Cocktail;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,12 +14,12 @@ public class Firebase {
         List<Cocktail> cocktails = new ArrayList<>();
 
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("cocktails/");
+        System.out.println("waiting for data from firebase...");
         ref.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for (DataSnapshot snap : dataSnapshot.getChildren()) {
-                    FirebaseCocktailSchema firebaseListing = snap.getValue(FirebaseCocktailSchema.class);
-                    Cocktail cocktail = Cocktail.TEST_COCKTAIL(firebaseListing.name);
+                    Cocktail cocktail = snap.getValue(Cocktail.class);
                     cocktails.add(cocktail);
                 }
                 semaphore.release();
@@ -26,14 +27,15 @@ public class Firebase {
 
             @Override
             public void onCancelled(DatabaseError error) {
-                throw new IllegalStateException(error.toException());
+                System.err.println("get cocktails from firebase failed");
+                error.toException().printStackTrace();
             }
         });
 
         try {
             semaphore.acquire();
         } catch (InterruptedException e) {
-            throw new IllegalStateException(e);
+            e.printStackTrace();
         }
 
         return cocktails;

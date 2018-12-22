@@ -1,18 +1,38 @@
 package lt.soe.cocktailmachineserver;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Cocktail {
 
-    private final String _name;
-
-    public Cocktail(String name) {
-        _name = name;
+    static Cocktail TEST_COCKTAIL(String name) {
+        return new Cocktail(
+                name,
+                "The jimmy whiskey cocktail",
+                new ArrayList<Ingredient>() {{
+                    add(new Ingredient(
+                            "Jack Daniels",
+                            1,
+                            1,
+                            35,
+                            700
+                    ));
+                }});
     }
 
-    @JsonProperty("name")
-    public String getCocktailName() {
-        return _name;
+    public String name;
+    public String description;
+    public List<Ingredient> ingredients;
+
+    public Cocktail(String name, String description, List<Ingredient> ingredients) {
+        this.name = name;
+        this.description = description;
+        this.ingredients = ingredients;
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 
 }

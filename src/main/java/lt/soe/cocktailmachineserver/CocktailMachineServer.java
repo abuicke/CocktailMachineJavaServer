@@ -3,11 +3,10 @@ package lt.soe.cocktailmachineserver;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import lt.soe.cocktailmachineserver.cocktail.Cocktail;
 import lt.soe.cocktailmachineserver.cocktailorder.CocktailOrder;
 import lt.soe.cocktailmachineserver.firebase.Firebase;
+import lt.soe.cocktailmachineserver.pumps.PumpsConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-import java.util.concurrent.Semaphore;
 
 import static java.lang.System.exit;
 
@@ -23,6 +21,7 @@ import static java.lang.System.exit;
 @SpringBootApplication
 public class CocktailMachineServer {
 
+    private static PumpsConfiguration pumpsConfiguration;
     private static List<Cocktail> cocktails;
 
     public static void main(String[] args) {
@@ -38,6 +37,7 @@ public class CocktailMachineServer {
 
             FirebaseApp.initializeApp(options);
 
+            pumpsConfiguration = new Firebase().getPumpsConfiguration();
             cocktails = new Firebase().getCocktails();
             System.out.println("loaded cocktails from firebase " + cocktails);
         } catch (IOException ioe) {
@@ -59,29 +59,9 @@ public class CocktailMachineServer {
     @PostMapping("/construct_cocktail")
     public ServerResponse constructCocktail(@RequestBody Cocktail cocktail) {
         System.out.println("received cocktail " + cocktail.name);
-        cocktails.add(cocktail);
-        Semaphore semaphore = new Semaphore(0);
-        ServerResponse serverResponse = new ServerResponse();
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("cocktails/" + (cocktails.size() - 1));
-        ref.setValue(cocktail, (databaseError, databaseReference) -> {
-            if (databaseError == null) {
-                serverResponse.successful = true;
-                serverResponse.message = "added cocktail " + cocktail.name + " to firebase successfully";
-                System.out.println(serverResponse.message);
-                semaphore.release();
-
-            } else {
-                serverResponse.successful = true;
-                serverResponse.message = databaseError.getMessage();
-                databaseError.toException().printStackTrace();
-                semaphore.release();
-            }
-        });
-
-        try {
-            semaphore.acquire();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        ServerResponse serverResponse = new Firebase().constructCocktail(cocktails.size() - 1, cocktail);
+        if (serverResponse.successful) {
+            cocktails.add(cocktail);
         }
 
         return serverResponse;
@@ -91,13 +71,29 @@ public class CocktailMachineServer {
     @PostMapping("/order_cocktail")
     public ServerResponse orderCocktail(@RequestBody CocktailOrder cocktailOrder) {
         System.out.println("/order_cocktail = " + cocktailOrder.cocktailId);
-        for(Cocktail cocktail: cocktails) {
-            if(cocktail.id == cocktailOrder.cocktailId) {
+        for (Cocktail cocktail : cocktails) {
+            if (cocktail.id == cocktailOrder.cocktailId) {
                 return new ServerResponse(true, "ordered cocktail " + cocktail.name + " successfully");
             }
         }
 
         return new ServerResponse(false, "failed to order cocktail with id " + cocktailOrder.cocktailId);
+    }
+
+    @GetMapping("/get_pumps_configuration")
+    public PumpsConfiguration getPumpsConfiguration() {
+        return pumpsConfiguration;
+    }
+
+    @ResponseBody
+    @PostMapping("/set_pumps_configuration")
+    public ServerResponse setPumpsConfiguration(@RequestBody PumpsConfiguration pumpsConfiguration) {
+        ServerResponse serverResponse = new Firebase().setPumpsConfiguration(pumpsConfiguration);
+        if (serverResponse.successful) {
+            CocktailMachineServer.pumpsConfiguration = pumpsConfiguration;
+        }
+
+        return serverResponse;
     }
 
 }

@@ -4,8 +4,10 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import lt.soe.cocktailmachineserver.cocktail.Cocktail;
+import lt.soe.cocktailmachineserver.cocktail.Ingredient;
 import lt.soe.cocktailmachineserver.cocktailorder.CocktailOrder;
 import lt.soe.cocktailmachineserver.firebase.Firebase;
+import lt.soe.cocktailmachineserver.pumps.Pump;
 import lt.soe.cocktailmachineserver.pumps.PumpsConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -38,6 +40,7 @@ public class CocktailMachineServer {
             FirebaseApp.initializeApp(options);
 
             pumpsConfiguration = new Firebase().getPumpsConfiguration();
+            System.out.println("loaded pump configuration from firebase " + pumpsConfiguration);
             cocktails = new Firebase().getCocktails();
             System.out.println("loaded cocktails from firebase " + cocktails);
         } catch (IOException ioe) {
@@ -73,11 +76,37 @@ public class CocktailMachineServer {
         System.out.println("/order_cocktail = " + cocktailOrder.cocktailId);
         for (Cocktail cocktail : cocktails) {
             if (cocktail.id == cocktailOrder.cocktailId) {
-                return new ServerResponse(true, "ordered cocktail " + cocktail.name + " successfully");
+                for (Ingredient ingredient : cocktail.ingredients) {
+                    boolean found = false;
+                    for (Pump pump : pumpsConfiguration.pumps) {
+                        if (pump.bottle.name.equals(ingredient.bottleName)) {
+                            pump.bottle.currentVolumeMillilitres =
+                                    pump.bottle.currentVolumeMillilitres - ingredient.millilitresInADrink;
+                            setPumpsConfiguration(pumpsConfiguration);
+                            found = true;
+                        }
+                    }
+
+                    if (!found) {
+                        return new ServerResponse(
+                                false,
+                                "missing ingredient " + ingredient.bottleName +
+                                        " for making cocktail " + cocktail.name
+                        );
+                    }
+                }
+
+                return new ServerResponse(
+                        true,
+                        "ordered cocktail " + cocktail.name + " successfully"
+                );
             }
         }
 
-        return new ServerResponse(false, "failed to order cocktail with id " + cocktailOrder.cocktailId);
+        return new ServerResponse(
+                false,
+                "failed to order cocktail with id " + cocktailOrder.cocktailId
+        );
     }
 
     @GetMapping("/get_pumps_configuration")

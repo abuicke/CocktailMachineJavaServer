@@ -13,5 +13,4 @@ public class Cocktail {
     public String toString() {
         return name;
     }
-
 }

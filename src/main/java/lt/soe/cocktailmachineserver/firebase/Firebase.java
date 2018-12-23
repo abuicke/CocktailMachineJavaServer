@@ -16,7 +16,7 @@ public class Firebase {
         List<Cocktail> cocktails = new ArrayList<>();
 
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("cocktails/");
-        System.out.println("waiting for data from firebase...");
+        System.out.println("waiting for cocktail from firebase...");
         ref.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -76,20 +76,22 @@ public class Firebase {
         List<PumpsConfiguration> pumpsConfigurations = new ArrayList<>();
 
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("pumpsConfiguration/");
-        System.out.println("waiting for data from firebase...");
+        System.out.println("waiting for pump configurations from firebase...");
         ref.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                PumpsConfiguration pumpsConfiguration = dataSnapshot.getValue(PumpsConfiguration.class);
-                pumpsConfigurations.add(pumpsConfiguration);
-                semaphore.release();
+                try {
+                    PumpsConfiguration pumpsConfiguration = dataSnapshot.getValue(PumpsConfiguration.class);
+                    pumpsConfigurations.add(pumpsConfiguration);
+                    semaphore.release();
+                } catch (Throwable t) {
+                    throw t;
+                }
             }
 
             @Override
             public void onCancelled(DatabaseError error) {
-                pumpsConfigurations.add(null);
-                System.err.println("get cocktails from firebase failed");
-                error.toException().printStackTrace();
+                throw error.toException();
             }
         });
 

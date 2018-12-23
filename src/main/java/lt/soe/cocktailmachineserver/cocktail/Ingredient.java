@@ -6,5 +6,4 @@ public class Ingredient {
     public int pumpNumber;
     public int pouringOrder;
     public int millilitresInADrink;
-    public int millilitresInAFullBottle;
 }

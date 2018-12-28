@@ -7,11 +7,6 @@ import java.nio.ByteBuffer;
 
 public final class ZeroMQUtils {
 
-    private static final byte TURN_OFF_WEIGHT_SENSOR = 0;
-    private static final byte TURN_ON_WEIGHT_SENSOR = 1;
-    private static final byte TURN_OFF_LIQUID_SENSOR = 2;
-    private static final byte TURN_ON_LIQUID_SENSOR = 3;
-
     private static final byte REQUEST_FAILED = 0;
     private static final byte REQUEST_SUCCEEDED = 1;
 
@@ -44,49 +39,33 @@ public final class ZeroMQUtils {
         }
     }
 
-    public static void turnOffWeightSensor() {
-        sendRequestCode(TURN_OFF_WEIGHT_SENSOR);
+    public static void getReadingsFromWeightSensor() {
+        sendRequestCode();
     }
 
-    public static void turnOnWeightSensor() {
-        sendRequestCode(TURN_ON_WEIGHT_SENSOR);
-    }
-
-    public static void turnOffLiquidSensor() {
-        sendRequestCode(TURN_OFF_LIQUID_SENSOR);
-    }
-
-    public static void turnOnLiquidSensor() {
-        sendRequestCode(TURN_ON_LIQUID_SENSOR);
-    }
-
-    private static void sendRequestCode(byte requestCode) {
+    private static void sendRequestCode() {
         try (ZContext context = new ZContext()) {
             //  Socket to talk to server
-            System.out.println("connecting to sensor server");
+            System.out.println("connecting to weight sensor");
 
             ZMQ.Socket socket = context.createSocket(ZMQ.REQ);
             String address = "tcp://localhost:5555";
             if (socket.connect(address)) {
-                System.out.println("successfully connected to " + address);
+                System.out.println("successfully connected to weight sensor on " + address);
             } else {
-                throw new IllegalStateException("failed to connect to " + address);
+                throw new IllegalStateException("failed to connect to weight sensor on " + address);
             }
 
-            if (socket.send(new byte[]{requestCode}, 0)) {
-                System.out.println("successfully sent request code " + requestCode);
+            if (socket.send(new byte[]{0}, 0)) {
+                System.out.println("successfully sent request code to weight sensor");
             } else {
-                throw new IllegalStateException("failed to send request code " + requestCode);
+                throw new IllegalStateException("failed to send request code to weight sensor");
             }
 
-            byte[] reply = socket.recv(0);
-            byte responseCode = reply[0];
-            if (responseCode == REQUEST_SUCCEEDED) {
-                System.out.println("request completed successfully");
-            } else if (responseCode == REQUEST_FAILED) {
-                throw new IllegalStateException("request failed");
-            } else {
-                throw new IllegalStateException("unrecognised response code " + responseCode);
+            while (!Thread.currentThread().isInterrupted()) {
+                byte[] reply = socket.recv(0);
+                double currentWeightFromSensor = ByteBuffer.wrap(reply).getDouble();
+                System.out.println("currentWeightFromSensor = " + currentWeightFromSensor);
             }
         }
     }

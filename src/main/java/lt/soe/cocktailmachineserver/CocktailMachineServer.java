@@ -9,6 +9,7 @@ import lt.soe.cocktailmachineserver.cocktailorder.CocktailOrder;
 import lt.soe.cocktailmachineserver.firebase.Firebase;
 import lt.soe.cocktailmachineserver.pumps.Pump;
 import lt.soe.cocktailmachineserver.pumps.PumpsConfiguration;
+import lt.soe.cocktailmachineserver.zeromq.ZeroMQUtils;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.*;
@@ -117,6 +118,10 @@ public class CocktailMachineServer {
     @ResponseBody
     @PostMapping("/set_pumps_configuration")
     public ServerResponse setPumpsConfiguration(@RequestBody PumpsConfiguration pumpsConfiguration) {
+        ZeroMQUtils.getReadingsFromWeightSensor();
+        /**
+         * TODO: Check to see if ingredients are available, i.e. bottles attached, sufficient quantities in bottles etc.
+         * */
         ServerResponse serverResponse = new Firebase().setPumpsConfiguration(pumpsConfiguration);
         if (serverResponse.successful) {
             CocktailMachineServer.pumpsConfiguration = pumpsConfiguration;

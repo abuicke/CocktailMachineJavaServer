@@ -4,69 +4,48 @@ import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
 import java.nio.ByteBuffer;
+import java.util.Random;
 
 public final class ZeroMQUtils {
 
-    private static final byte REQUEST_FAILED = 0;
-    private static final byte REQUEST_SUCCEEDED = 1;
+    public interface OnNewWeightSensorReadingListener {
+        void newWeightSensorReading(double weightSensorReading);
+    }
 
-    public static void constructCocktail() {
+    public static void getReadingsFromWeightSensor(OnNewWeightSensorReadingListener listener) {
         try (ZContext context = new ZContext()) {
-            //  Socket to talk to server
-            System.out.println("connecting to sensor server");
+            System.out.println("connecting to weight sensor...");
+            ZMQ.Socket requestSocket = context.createSocket(ZMQ.REQ);
+            System.out.println("opened request socket to communicate with weight sensor");
+            requestSocket.connect("tcp://localhost:5555");
+            requestSocket.send(new byte[]{0});
+            requestSocket.recv();
+            System.out.println("received reply over request socket, weight sensor is ready");
+            requestSocket.close();
+            System.out.println("closed request socket");
 
-            ZMQ.Socket socket = context.createSocket(ZMQ.PAIR);
-            String address = "tcp://localhost:5556";
-            if (socket.connect(address)) {
-                System.out.println("successfully connected to " + address);
-            } else {
-                throw new IllegalStateException("failed to connect to " + address);
-            }
+            System.out.println("opening subscriber socket to weight sensor to receive incoming weight sensor readings");
+            ZMQ.Socket subscribeSocket = context.createSocket(ZMQ.SUB);
+            subscribeSocket.connect("tcp://localhost:5555");
+            System.out.println("successfully connected to weight sensor over subscriber socket");
 
-            while (!Thread.currentThread().isInterrupted()) {
-                byte[] reply = socket.recv();
-                double currentWeightFromSensor = ByteBuffer.wrap(reply).getDouble();
-                if (currentWeightFromSensor == -1) {
+            subscribeSocket.subscribe("weight sensor topic".getBytes(ZMQ.CHARSET));
+            System.out.println("subscribed to weight sensor socket, waiting to receive readings from weight sensor");
+
+            while (true) {
+                subscribeSocket.recvStr();
+                byte[] data = subscribeSocket.recv(0);
+                double currentWeightFromSensor = ByteBuffer.wrap(data).getDouble();
+                if(currentWeightFromSensor != -1) {
+                    listener.newWeightSensorReading(currentWeightFromSensor);
+                }else {
+                    System.out.println("weight sensor has no more readings to return");
                     break;
                 }
-                System.out.println("currentWeightFromSensor = " + currentWeightFromSensor);
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    throw new IllegalStateException(e);
-                }
-            }
-        }
-    }
-
-    public static void getReadingsFromWeightSensor() {
-        sendRequestCode();
-    }
-
-    private static void sendRequestCode() {
-        try (ZContext context = new ZContext()) {
-            //  Socket to talk to server
-            System.out.println("connecting to weight sensor");
-
-            ZMQ.Socket socket = context.createSocket(ZMQ.REQ);
-            String address = "tcp://localhost:5555";
-            if (socket.connect(address)) {
-                System.out.println("successfully connected to weight sensor on " + address);
-            } else {
-                throw new IllegalStateException("failed to connect to weight sensor on " + address);
             }
 
-            if (socket.send(new byte[]{0}, 0)) {
-                System.out.println("successfully sent request code to weight sensor");
-            } else {
-                throw new IllegalStateException("failed to send request code to weight sensor");
-            }
-
-            while (!Thread.currentThread().isInterrupted()) {
-                byte[] reply = socket.recv(0);
-                double currentWeightFromSensor = ByteBuffer.wrap(reply).getDouble();
-                System.out.println("currentWeightFromSensor = " + currentWeightFromSensor);
-            }
+            System.out.println("closing subscriber socket to weight sensor");
+            subscribeSocket.close();
         }
     }
 

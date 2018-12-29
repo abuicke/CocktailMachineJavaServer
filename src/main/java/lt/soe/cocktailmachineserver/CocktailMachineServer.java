@@ -81,33 +81,23 @@ public class CocktailMachineServer {
                     boolean found = false;
                     for (Pump pump : pumpsConfiguration.pumps) {
                         if (pump.bottle.name.equals(ingredient.bottleName)) {
-                            pump.bottle.currentVolumeMillilitres =
-                                    pump.bottle.currentVolumeMillilitres - ingredient.millilitresInADrink;
-                            setPumpsConfiguration(pumpsConfiguration);
                             found = true;
+                            System.out.println("pouring " + ingredient.bottleName);
+                            ZeroMQUtils.getReadingsFromWeightSensor(System.out::println);
+                            System.out.println("finished pouring " + ingredient.bottleName);
+                            pump.bottle.currentVolumeMillilitres = pump.bottle.currentVolumeMillilitres - ingredient.millilitresInADrink;
                         }
                     }
 
-                    if (!found) {
-                        return new ServerResponse(
-                                false,
-                                "missing ingredient " + ingredient.bottleName +
-                                        " for making cocktail " + cocktail.name
-                        );
+                    if(!found) {
+                        return new ServerResponse(true, "missing ingredient " + ingredient.bottleName);
                     }
                 }
-
-                return new ServerResponse(
-                        true,
-                        "ordered cocktail " + cocktail.name + " successfully"
-                );
+                setPumpsConfiguration(pumpsConfiguration);
+                return new ServerResponse(true, "ordered cocktail " + cocktail.name + " successfully");
             }
         }
-
-        return new ServerResponse(
-                false,
-                "failed to order cocktail with id " + cocktailOrder.cocktailId
-        );
+        return new ServerResponse(false, "failed to order cocktail with id " + cocktailOrder.cocktailId);
     }
 
     @GetMapping("/get_pumps_configuration")
@@ -118,10 +108,6 @@ public class CocktailMachineServer {
     @ResponseBody
     @PostMapping("/set_pumps_configuration")
     public ServerResponse setPumpsConfiguration(@RequestBody PumpsConfiguration pumpsConfiguration) {
-        ZeroMQUtils.getReadingsFromWeightSensor();
-        /**
-         * TODO: Check to see if ingredients are available, i.e. bottles attached, sufficient quantities in bottles etc.
-         * */
         ServerResponse serverResponse = new Firebase().setPumpsConfiguration(pumpsConfiguration);
         if (serverResponse.successful) {
             CocktailMachineServer.pumpsConfiguration = pumpsConfiguration;

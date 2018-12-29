@@ -9,6 +9,8 @@ import lt.soe.cocktailmachineserver.cocktailorder.CocktailOrder;
 import lt.soe.cocktailmachineserver.firebase.Firebase;
 import lt.soe.cocktailmachineserver.pumps.Pump;
 import lt.soe.cocktailmachineserver.pumps.PumpsConfiguration;
+import lt.soe.cocktailmachineserver.systemstate.SystemEvent;
+import lt.soe.cocktailmachineserver.systemstate.SystemEventsQueue;
 import lt.soe.cocktailmachineserver.zeromq.ZeroMQUtils;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -54,16 +56,15 @@ public class CocktailMachineServer {
     }
 
     @GetMapping("/get_cocktails")
-    public List<Cocktail> getCocktails() {
-        System.out.println("/get_cocktails = " + cocktails);
+    public List<Cocktail> getCocktails() throws InterruptedException {
+        SystemEventsQueue.add(new SystemEvent("/get_cocktails"));
         return cocktails;
     }
 
     @ResponseBody
     @PostMapping("/construct_cocktail")
     public ServerResponse constructCocktail(@RequestBody Cocktail cocktail) {
-        System.out.println("received cocktail " + cocktail.name);
-        ServerResponse serverResponse = new Firebase().constructCocktail(cocktails.size() - 1, cocktail);
+        ServerResponse serverResponse = new Firebase().constructCocktail(cocktails.size(), cocktail);
         if (serverResponse.successful) {
             cocktails.add(cocktail);
         }
@@ -74,7 +75,6 @@ public class CocktailMachineServer {
     @ResponseBody
     @PostMapping("/order_cocktail")
     public ServerResponse orderCocktail(@RequestBody CocktailOrder cocktailOrder) {
-        System.out.println("/order_cocktail = " + cocktailOrder.cocktailId);
         for (Cocktail cocktail : cocktails) {
             if (cocktail.id == cocktailOrder.cocktailId) {
                 for (Ingredient ingredient : cocktail.ingredients) {
@@ -85,19 +85,23 @@ public class CocktailMachineServer {
                             System.out.println("pouring " + ingredient.bottleName);
                             ZeroMQUtils.getReadingsFromWeightSensor(System.out::println);
                             System.out.println("finished pouring " + ingredient.bottleName);
-                            pump.bottle.currentVolumeMillilitres = pump.bottle.currentVolumeMillilitres - ingredient.millilitresInADrink;
+                            pump.bottle.currentVolumeMillilitres =
+                                    pump.bottle.currentVolumeMillilitres - ingredient.millilitresInADrink;
                         }
                     }
 
-                    if(!found) {
-                        return new ServerResponse(true, "missing ingredient " + ingredient.bottleName);
+                    if (!found) {
+                        return new ServerResponse(true,
+                                "missing ingredient " + ingredient.bottleName);
                     }
                 }
                 setPumpsConfiguration(pumpsConfiguration);
-                return new ServerResponse(true, "ordered cocktail " + cocktail.name + " successfully");
+                return new ServerResponse(true, "ordered " +
+                        "cocktail " + cocktail.name + " successfully");
             }
         }
-        return new ServerResponse(false, "failed to order cocktail with id " + cocktailOrder.cocktailId);
+        return new ServerResponse(false, "failed to " +
+                "order cocktail with id " + cocktailOrder.cocktailId);
     }
 
     @GetMapping("/get_pumps_configuration")
@@ -114,6 +118,11 @@ public class CocktailMachineServer {
         }
 
         return serverResponse;
+    }
+
+    @GetMapping("/get_last_system_event")
+    public SystemEvent getLastSystemEvent() throws InterruptedException {
+        return SystemEventsQueue.get();
     }
 
 }

@@ -43,7 +43,7 @@ public class CocktailMachineServer {
             FirebaseApp.initializeApp(options);
 
             pumpsConfiguration = new Firebase().getPumpsConfiguration();
-            System.out.println("loaded pump configuration from firebase " + pumpsConfiguration);
+            System.out.println("loaded pump configurations from firebase " + pumpsConfiguration);
             cocktails = new Firebase().getCocktails();
             System.out.println("loaded cocktails from firebase " + cocktails);
         } catch (IOException ioe) {
@@ -77,13 +77,17 @@ public class CocktailMachineServer {
     public ServerResponse orderCocktail(@RequestBody CocktailOrder cocktailOrder) {
         for (Cocktail cocktail : cocktails) {
             if (cocktail.id == cocktailOrder.cocktailId) {
-                for (Ingredient ingredient : cocktail.ingredients) {
+                System.out.println("making " + cocktail);
+                Ingredient[] ingredients = rearrangeIngredientsByPouringOrder(cocktail.ingredients);
+                for (Ingredient ingredient : ingredients) {
                     boolean found = false;
                     for (Pump pump : pumpsConfiguration.pumps) {
                         if (pump.bottle.name.equals(ingredient.bottleName)) {
                             found = true;
                             System.out.println("pouring " + ingredient.bottleName);
-                            ZeroMQUtils.getReadingsFromWeightSensor(System.out::println);
+                            ZeroMQUtils.getReadingsFromWeightSensor(ingredient, weightSensorReading -> {
+                                System.out.println("weight sensor reading " + weightSensorReading);
+                            });
                             System.out.println("finished pouring " + ingredient.bottleName);
                             pump.bottle.currentVolumeMillilitres =
                                     pump.bottle.currentVolumeMillilitres - ingredient.millilitresInADrink;
@@ -91,10 +95,13 @@ public class CocktailMachineServer {
                     }
 
                     if (!found) {
+                        System.err.println(ingredient + " is not attached to pumps");
                         return new ServerResponse(true,
                                 "missing ingredient " + ingredient.bottleName);
                     }
                 }
+
+                System.out.println("finished making " + cocktail.name);
                 setPumpsConfiguration(pumpsConfiguration);
                 return new ServerResponse(true, "ordered " +
                         "cocktail " + cocktail.name + " successfully");
@@ -123,6 +130,22 @@ public class CocktailMachineServer {
     @GetMapping("/get_last_system_event")
     public SystemEvent getLastSystemEvent() throws InterruptedException {
         return SystemEventsQueue.get();
+    }
+
+    private Ingredient[] rearrangeIngredientsByPouringOrder(List<Ingredient> ingredientsList) {
+        Ingredient[] ingredients = new Ingredient[ingredientsList.size()];
+        int cnt = 0;
+        while (cnt < ingredients.length) {
+            for (Ingredient ingredient : ingredientsList) {
+                if (ingredient.pouringOrder == (cnt + 1)) {
+                    ingredients[cnt] = ingredient;
+                    cnt++;
+                    break;
+                }
+            }
+        }
+
+        return ingredients;
     }
 
 }

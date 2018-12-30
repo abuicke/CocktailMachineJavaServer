@@ -16,7 +16,7 @@ public class Firebase {
         List<Cocktail> cocktails = new ArrayList<>();
 
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("cocktails/");
-        System.out.println("waiting for cocktail from firebase...");
+        System.out.println("waiting for cocktails from firebase...");
         ref.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -112,7 +112,6 @@ public class Firebase {
             if (databaseError == null) {
                 serverResponse.successful = true;
                 serverResponse.message = "pumps configuration updated successfully";
-                System.out.println(serverResponse.message);
                 semaphore.release();
 
             } else {

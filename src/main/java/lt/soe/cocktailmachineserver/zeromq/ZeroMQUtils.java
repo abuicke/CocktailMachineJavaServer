@@ -25,15 +25,8 @@ public final class ZeroMQUtils {
             requestSocket.recv();
             requestSocket.close();
 
-            //  Wait for weight sensor simulator to open publisher socket
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException ie) {
-                throw new IllegalStateException(ie);
-            }
-
             ZMQ.Socket subscribeSocket = context.createSocket(ZMQ.SUB);
-            subscribeSocket.connect("tcp://localhost:5555");
+            subscribeSocket.connect("tcp://localhost:5556");
 
             subscribeSocket.subscribe("weight sensor topic".getBytes(ZMQ.CHARSET));
 

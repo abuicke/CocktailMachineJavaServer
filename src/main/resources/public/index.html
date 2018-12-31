@@ -1,11 +1,8 @@
 <!DOCTYPE html>
 <html>
     <head>
-    </head>
-    <body>
-        <h1>Cocktail Machine System Monitor</h1>
         <script>
-            const getLastSystemEvent = function() {
+            const listenForSystemEvents = function() {
                 const xmlHttpRequest = new XMLHttpRequest()
                 const url = 'http://192.168.0.15/get_last_system_event'
                 xmlHttpRequest.open("GET", url)
@@ -19,12 +16,16 @@
                             p.innerHTML = systemEvent.name
                             document.body.appendChild(p)
                         }
-                        window.setTimeout(getLastSystemEvent, 100)
+                        window.setTimeout(listenForSystemEvents, 100)
                     }
                 }
             }
-
-            getLastSystemEvent()
+        </script>
+    </head>
+    <body>
+        <h1>Cocktail Machine System Monitor</h1>
+        <script>
+            listenForSystemEvents()
         </script>
     </body>
 </html>

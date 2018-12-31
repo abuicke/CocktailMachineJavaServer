@@ -3,10 +3,11 @@
     <head>
     </head>
     <body>
+        <h1>Cocktail Machine System Monitor</h1>
         <script>
             const getLastSystemEvent = function() {
                 const xmlHttpRequest = new XMLHttpRequest()
-                const url = 'http://192.168.0.15:8080/get_last_system_event'
+                const url = 'http://192.168.0.15/get_last_system_event'
                 xmlHttpRequest.open("GET", url)
                 xmlHttpRequest.send()
                 xmlHttpRequest.onreadystatechange = function() {
@@ -15,7 +16,7 @@
                         if(systemEvent.name) {
                             console.log("systemEvent = " + systemEvent.name)
                             const p = document.createElement("p")
-                            p.innerHTML = "systemEvent = " + systemEvent.name
+                            p.innerHTML = systemEvent.name
                             document.body.appendChild(p)
                         }
                         window.setTimeout(getLastSystemEvent, 100)

@@ -13,7 +13,7 @@ public final class ZeroMQUtils {
         void newWeightSensorReading(double weightSensorReading);
     }
 
-    public static void getReadingsFromWeightSensor(Ingredient ingredient, OnNewWeightSensorReadingListener listener) {
+    public static void simulatePouring(Ingredient ingredient, OnNewWeightSensorReadingListener listener) {
         try (ZContext context = new ZContext()) {
             ZMQ.Socket requestSocket = context.createSocket(ZMQ.REQ);
             requestSocket.connect("tcp://localhost:5555");
@@ -24,6 +24,13 @@ public final class ZeroMQUtils {
             requestSocket.send(requestBytes);
             requestSocket.recv();
             requestSocket.close();
+
+            //  Wait for weight sensor simulator to open publisher socket
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException ie) {
+                throw new IllegalStateException(ie);
+            }
 
             ZMQ.Socket subscribeSocket = context.createSocket(ZMQ.SUB);
             subscribeSocket.connect("tcp://localhost:5555");

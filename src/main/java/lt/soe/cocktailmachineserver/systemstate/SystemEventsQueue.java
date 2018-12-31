@@ -7,6 +7,10 @@ public class SystemEventsQueue {
 
     private static final Queue<SystemEvent> eventsQueue = new LinkedList<>();
 
+    public static void start() {
+
+    }
+
     public static void add(SystemEvent event) throws InterruptedException {
         eventsQueue.add(event);
     }

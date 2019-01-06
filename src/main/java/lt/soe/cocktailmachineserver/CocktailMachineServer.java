@@ -29,7 +29,7 @@ public class CocktailMachineServer {
     private static PumpsConfiguration pumpsConfiguration;
     private static List<Cocktail> cocktails;
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) {
         SpringApplication.run(CocktailMachineServer.class, args);
         SystemEventsQueue.add(new SystemEvent("SpringBoot RESTful server initialised"));
 
@@ -44,76 +44,61 @@ public class CocktailMachineServer {
             FirebaseApp.initializeApp(options);
             SystemEventsQueue.add(new SystemEvent(
                     "server connected to Firebase database " +
-                            "https://drinkingmaster-96b6c.firebaseio.com"
-            ));
+                            "https://drinkingmaster-96b6c.firebaseio.com"));
 
             pumpsConfiguration = new Firebase().getPumpsConfiguration();
-            System.out.println("loaded pump configurations from firebase database " + pumpsConfiguration);
+            System.out.println("loaded pumps configuration from firebase database " + pumpsConfiguration);
             SystemEventsQueue.add(new SystemEvent(
-                    "loaded pump configurations from firebase database " + pumpsConfiguration
-            ));
+                    "loaded pumps configuration from firebase database " + pumpsConfiguration));
+
             cocktails = new Firebase().getCocktails();
             System.out.println("loaded cocktails from firebase " + cocktails);
             SystemEventsQueue.add(new SystemEvent(
-                    "loaded cocktails from firebase database " + cocktails
-            ));
+                    "loaded cocktails from firebase database " + cocktails));
+
         } catch (IOException ioe) {
-            System.err.println("couldn't initialise firebase sdk");
+            ioe.printStackTrace();
             SystemEventsQueue.add(new SystemEvent(
                     "failed to connect to firebase database," +
-                            " server shutting down...", true
-            ));
-            ioe.printStackTrace();
+                            " server shutting down...", true));
             exit(-1);
         }
 
+        SystemEventsQueue.add(new SystemEvent("server running..."));
         System.out.println("server running...");
     }
 
     @GetMapping("/get_cocktails")
-    public List<Cocktail> getCocktails() throws InterruptedException {
+    public List<Cocktail> getCocktails() {
         SystemEventsQueue.add(new SystemEvent(
                 "request made to server for list of available " +
-                        "cocktails, sending cocktails " + cocktails
-        ));
+                        "cocktails, sending cocktails " + cocktails));
         return cocktails;
     }
 
-    @ResponseBody
     @PostMapping("/construct_cocktail")
-    public ServerResponse constructCocktail(@RequestBody Cocktail cocktail) throws InterruptedException {
+    public void constructCocktail(@RequestBody Cocktail cocktail) {
         SystemEventsQueue.add(new SystemEvent(
-                "request made to construct new cocktail " + cocktail
-        ));
-        ServerResponse serverResponse = new Firebase().constructCocktail(cocktails.size(), cocktail);
-        if (serverResponse.successful) {
+                "request made to construct new cocktail " + cocktail));
+        boolean successful = new Firebase().constructCocktail(cocktails.size(), cocktail);
+        if (successful) {
             cocktails.add(cocktail);
             SystemEventsQueue.add(new SystemEvent(
-                    "constructed new cocktail " + cocktail + " successfully"
-            ));
+                    "constructed new cocktail " + cocktail + " successfully"));
         } else {
             SystemEventsQueue.add(new SystemEvent(
-                    "failed to construct new cocktail " + cocktail, true
-            ));
+                    "failed to construct new cocktail " + cocktail, true));
         }
-
-        return serverResponse;
     }
 
-    @ResponseBody
     @PostMapping("/order_cocktail")
-    public ServerResponse orderCocktail(@RequestBody CocktailOrder cocktailOrder) throws InterruptedException {
-        SystemEventsQueue.add(new SystemEvent(
-                "request made to order cocktail with ID " +
-                        cocktailOrder.cocktailId + " looking up cocktail by ID..."
-        ));
+    public void orderCocktail(@RequestBody CocktailOrder cocktailOrder) {
+        SystemEventsQueue.add(new SystemEvent("request made to order cocktail with ID " +
+                cocktailOrder.cocktailId + " looking up cocktail by ID..."));
         for (Cocktail cocktail : cocktails) {
             if (cocktail.id == cocktailOrder.cocktailId) {
-                SystemEventsQueue.add(new SystemEvent(
-                        "found cocktail with ID " +
-                                cocktailOrder.cocktailId +
-                                " making cocktail " + cocktail + "..."
-                ));
+                SystemEventsQueue.add(new SystemEvent("found cocktail with ID " +
+                        cocktailOrder.cocktailId + " making cocktail " + cocktail + "..."));
                 System.out.println("making " + cocktail);
                 Ingredient[] ingredients = rearrangeIngredientsByPouringOrder(cocktail.ingredients);
                 for (Ingredient ingredient : ingredients) {
@@ -121,22 +106,14 @@ public class CocktailMachineServer {
                     for (Pump pump : pumpsConfiguration.pumps) {
                         if (pump.bottle.name.equals(ingredient.bottleName)) {
                             found = true;
-                            SystemEventsQueue.add(new SystemEvent(
-                                    "pouring " + pump
-                            ));
+                            SystemEventsQueue.add(new SystemEvent("pouring " + pump));
                             System.out.println("pouring " + ingredient.bottleName);
                             ZeroMQUtils.simulatePouring(ingredient, weightSensorReading -> {
-                                try {
-                                    SystemEventsQueue.add(new SystemEvent(
-                                            "weight sensor reading: " + weightSensorReading + "g"
-                                    ));
-                                } catch (InterruptedException ie) {
-                                    ie.printStackTrace();
-                                }
+                                SystemEventsQueue.add(new SystemEvent(
+                                        "weight sensor reading: " + weightSensorReading + "g"));
                             });
                             SystemEventsQueue.add(new SystemEvent(
-                                    "finished pouring " + ingredient.bottleName
-                            ));
+                                    "finished pouring " + ingredient.bottleName));
                             System.out.println("finished pouring " + ingredient.bottleName);
                             pump.bottle.currentVolumeMillilitres =
                                     pump.bottle.currentVolumeMillilitres - ingredient.millilitresInADrink;
@@ -145,42 +122,40 @@ public class CocktailMachineServer {
 
                     if (!found) {
                         System.err.println(ingredient + " is not attached to pumps");
-                        return new ServerResponse(true,
-                                "missing ingredient " + ingredient.bottleName);
+                        SystemEventsQueue.add(new SystemEvent("missing ingredient " +
+                                ingredient.bottleName + ", couldn't make cocktail " + cocktail));
+                        return;
                     }
                 }
 
-                SystemEventsQueue.add(new SystemEvent(
-                        "finished making " + cocktail
-                ));
+                SystemEventsQueue.add(new SystemEvent("finished making " + cocktail));
                 System.out.println("finished making " + cocktail);
                 setPumpsConfiguration(pumpsConfiguration);
-                return new ServerResponse(true, "ordered " +
-                        "cocktail " + cocktail + " successfully");
+                return;
             }
         }
-        return new ServerResponse(false, "failed to " +
-                "order cocktail with id " + cocktailOrder.cocktailId);
+
+        SystemEventsQueue.add(new SystemEvent("couldn't find cocktail with ID " +
+                cocktailOrder.cocktailId + ", failed to make cocktail", true));
     }
 
     @GetMapping("/get_pumps_configuration")
     public PumpsConfiguration getPumpsConfiguration() {
+        SystemEventsQueue.add(new SystemEvent("request made to " +
+                "get_pumps_configuration, returning " + pumpsConfiguration));
         return pumpsConfiguration;
     }
 
-    @ResponseBody
     @PostMapping("/set_pumps_configuration")
-    public ServerResponse setPumpsConfiguration(@RequestBody PumpsConfiguration pumpsConfiguration) {
-        ServerResponse serverResponse = new Firebase().setPumpsConfiguration(pumpsConfiguration);
-        if (serverResponse.successful) {
+    public void setPumpsConfiguration(@RequestBody PumpsConfiguration pumpsConfiguration) {
+        boolean successful = new Firebase().setPumpsConfiguration(pumpsConfiguration);
+        if (successful) {
             CocktailMachineServer.pumpsConfiguration = pumpsConfiguration;
         }
-
-        return serverResponse;
     }
 
     @GetMapping("/get_last_system_event")
-    public SystemEvent getLastSystemEvent() throws InterruptedException {
+    public SystemEvent getLastSystemEvent() {
         return SystemEventsQueue.get();
     }
 

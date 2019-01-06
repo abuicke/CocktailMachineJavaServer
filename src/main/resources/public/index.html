@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
-    <head>
+    <body>
+        <h1>Cocktail Machine System Monitor</h1>
         <script>
             const listenForSystemEvents = function() {
                 const xmlHttpRequest = new XMLHttpRequest()
@@ -13,6 +14,9 @@
                         if(systemEvent.name) {
                             console.log("systemEvent = " + systemEvent.name)
                             const p = document.createElement("p")
+                            if(systemEvent.isError) {
+                                p.style.color = "red"
+                            }
                             p.innerHTML = systemEvent.name
                             document.body.appendChild(p)
                         }
@@ -20,11 +24,6 @@
                     }
                 }
             }
-        </script>
-    </head>
-    <body>
-        <h1>Cocktail Machine System Monitor</h1>
-        <script>
             listenForSystemEvents()
         </script>
     </body>

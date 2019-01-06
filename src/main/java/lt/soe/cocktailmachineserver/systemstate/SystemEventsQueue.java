@@ -11,11 +11,11 @@ public class SystemEventsQueue {
 
     }
 
-    public static void add(SystemEvent event) throws InterruptedException {
+    public static void add(SystemEvent event) {
         eventsQueue.add(event);
     }
 
-    public static SystemEvent get() throws InterruptedException {
+    public static SystemEvent get() {
         if(eventsQueue.peek() != null) {
             return eventsQueue.poll();
         }else {

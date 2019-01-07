@@ -9,6 +9,12 @@ public class PumpsConfiguration {
 
     @Override
     public String toString() {
-        return pumps.toString();
+        StringBuilder string = new StringBuilder("[");
+        for (int i = 0; i < pumps.size() - 1; i++) {
+            string.append(pumps.get(i) + " attached to pump " + (i + 1) + ", ");
+        }
+        string.append(pumps.get(pumps.size() - 1) + " attached to pump " + pumps.size());
+        string.append("]");
+        return string.toString();
     }
 }

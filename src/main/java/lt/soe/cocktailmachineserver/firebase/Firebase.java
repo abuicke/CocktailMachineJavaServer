@@ -83,22 +83,31 @@ public class Firebase {
     }
 
     public PumpsConfiguration getPumpsConfiguration() {
+        // This is a synchronization lock, it stops other code from changing the pumps while
+        // the pump data is being read. This is so the state of the pumps doesn't change
+        // before it is read, e.g. if a drink is made while the pump configuration is
+        // being read than the wrong information will be returned.
         final Semaphore semaphore = new Semaphore(0);
+        // Create an empty List object to store the pump configuration in.
         List<PumpsConfiguration> pumpsConfigurations = new ArrayList<>();
 
+        // Get reference to pump configuration data in Firebase.
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("pumpsConfiguration/");
         System.out.println("waiting for pumps configuration from firebase...");
         SystemEventsQueue.add(new SystemEvent("waiting for pumps configuration from firebase..."));
+        // Get pump configuration data from Firebase
         ref.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 PumpsConfiguration pumpsConfiguration = dataSnapshot.getValue(PumpsConfiguration.class);
                 pumpsConfigurations.add(pumpsConfiguration);
+                // Release the lock now that the data has been received.
                 semaphore.release();
             }
 
             @Override
             public void onCancelled(DatabaseError error) {
+                semaphore.release();
                 error.toException().printStackTrace();
                 SystemEventsQueue.add(new SystemEvent(
                         "failed to load pumps configuration from " +
@@ -107,6 +116,7 @@ public class Firebase {
         });
 
         try {
+            // Turn on the synchronization lock
             semaphore.acquire();
         } catch (InterruptedException ie) {
             ie.printStackTrace();
@@ -114,6 +124,7 @@ public class Firebase {
                     "failed to load pumps configuration from firebase database", true));
         }
 
+        // Return the pump configuration.
         return pumpsConfigurations.get(0);
     }
 

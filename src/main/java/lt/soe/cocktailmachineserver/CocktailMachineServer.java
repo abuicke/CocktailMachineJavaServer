@@ -38,13 +38,13 @@ public class CocktailMachineServer {
 
             FirebaseOptions options = new FirebaseOptions.Builder()
                     .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                    .setDatabaseUrl("https://drinkingmaster-96b6c.firebaseio.com")
+                    .setDatabaseUrl("https://drinkbase-d4ca3.firebaseio.com/")
                     .build();
 
             FirebaseApp.initializeApp(options);
             SystemEventsQueue.add(new SystemEvent(
                     "server connected to Firebase database " +
-                            "https://drinkingmaster-96b6c.firebaseio.com"));
+                            "https://drinkbase-d4ca3.firebaseio.com/"));
 
             pumpsConfiguration = new Firebase().getPumpsConfiguration();
             System.out.println("loaded pumps configuration from firebase database " + pumpsConfiguration);

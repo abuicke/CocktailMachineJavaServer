@@ -108,6 +108,17 @@ public class CocktailMachineServer {
                             found = true;
                             SystemEventsQueue.add(new SystemEvent("pouring " + pump));
                             System.out.println("pouring " + ingredient.bottleName);
+
+                            if (pump.bottle.currentVolumeMillilitres < ingredient.millilitresInADrink) {
+                                System.err.println("not enough " + ingredient + ". needs " +
+                                        ingredient.millilitresInADrink + "mls, but only " +
+                                        pump.bottle.currentVolumeMillilitres + "mls is available");
+                                SystemEventsQueue.add(new SystemEvent("not enough " + ingredient +
+                                        ". needs " + ingredient.millilitresInADrink + "mls, but only " +
+                                        pump.bottle.currentVolumeMillilitres + "mls is available"));
+                                return;
+                            }
+
                             ZeroMQUtils.simulatePouring(ingredient, weightSensorReading -> {
                                 SystemEventsQueue.add(new SystemEvent(
                                         "weight sensor reading: " + weightSensorReading + "g"));

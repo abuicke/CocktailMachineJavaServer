@@ -16,13 +16,23 @@ public class Firebase {
         final Semaphore semaphore = new Semaphore(0);
         List<Cocktail> cocktails = new ArrayList<>();
 
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("cocktails/");
         System.out.println("waiting for cocktails from firebase...");
         SystemEventsQueue.add(new SystemEvent("waiting for cocktails from firebase..."));
+        // Get a reference for all cocktails in Firebase, i.e.
+        // |-----------|
+        // |cocktails/ |
+        // |...        |
+        // |...........|
+        // pumpsConfigurations/
+        // ...
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("cocktails/");
+        // Set a listener to get data from Firebase database
         ref.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                // Loop through every cocktail in the database
                 for (DataSnapshot snap : dataSnapshot.getChildren()) {
+                    // Create the cocktail object from data in firebase
                     Cocktail cocktail = snap.getValue(Cocktail.class);
                     cocktails.add(cocktail);
                 }

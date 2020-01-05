@@ -150,6 +150,20 @@ public class CocktailMachineServer {
                 cocktailOrder.cocktailId + ", failed to make cocktail", true));
     }
 
+    @PostMapping("/delete_cocktail")
+    public void deleteCocktail(@RequestBody Cocktail cocktail) {
+        int index = -1;
+        for (Cocktail cocktail1 : cocktails) {
+            index++;
+            if (cocktail1.name.equals(cocktail.name)) {
+                break;
+            }
+        }
+        cocktails.remove(cocktail);
+        new Firebase().deleteCocktail(index);
+        System.out.println("deleted cocktail " + cocktail);
+    }
+
     @GetMapping("/get_pumps_configuration")
     public PumpsConfiguration getPumpsConfiguration() {
         SystemEventsQueue.add(new SystemEvent("request made to " +

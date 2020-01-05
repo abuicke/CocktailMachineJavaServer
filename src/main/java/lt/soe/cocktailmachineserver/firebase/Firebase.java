@@ -92,6 +92,13 @@ public class Firebase {
         }
     }
 
+    public void deleteCocktail(int index) {
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("cocktails/");
+        ref.child(Integer.toString(index)).removeValue((databaseError, databaseReference) -> {
+            System.out.println("deleted " + databaseReference + ", error: " + databaseError);
+        });
+    }
+
     public PumpsConfiguration getPumpsConfiguration() {
         // This is a synchronization lock, it stops other code from changing the pumps while
         // the pump data is being read. This is so the state of the pumps doesn't change

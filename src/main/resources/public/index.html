@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="styles.css"/>
+    </head>
     <body>
-        <h1>Cocktail Machine System Monitor</h1>
+        <!--        <h1>Cocktail Machine System Monitor</h1>-->
         <script>
             const listenForSystemEvents = function() {
                 const xmlHttpRequest = new XMLHttpRequest()
-                const url = 'http://192.168.0.15/get_last_system_event'
+                const url = 'http://192.168.1.11/get_last_system_event'
                 xmlHttpRequest.open("GET", url)
                 xmlHttpRequest.send()
                 xmlHttpRequest.onreadystatechange = function() {
@@ -24,7 +27,27 @@
                     }
                 }
             }
-            listenForSystemEvents()
+            //            listenForSystemEvents()
+        </script>
+
+        <div id ="myContainer">
+            <div id ="myAnimation"></div>
+        </div>
+
+        <script>
+            (function () {
+                var elem = document.getElementById("myAnimation");   
+                var pos = 0;
+                var id = setInterval(frame, 10);
+                function frame() {
+                    if (pos == 400) {
+                        clearInterval(id);
+                    } else {
+                        pos++;
+                        elem.style.height = pos + 'px'
+                    }
+                }
+            }())
         </script>
     </body>
 </html>

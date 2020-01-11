@@ -3,28 +3,25 @@
     <head>
         <meta charset="utf-8"/>
         <link rel="stylesheet" type="text/css" href="styles.css"/>
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/xterm/3.14.5/xterm.min.css"/>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.bundle.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/xterm/3.14.5/xterm.min.js"></script>
         <style>
+            /*
             .xterm-helper-textarea {
-                display: none;
+            display: none;
             }
-/*
+            */
+            /*
             .xterm-char-measure-element {
-                display: none;
+            display: none;
             }
-*/
+            */
         </style>
     </head>
     <body>
         <canvas id="pumpsChart" width="1200" height="400"></canvas>
-
         <div id="terminal"></div>
-        <script>
-            var term = new Terminal();
-            term.open(document.getElementById('terminal'));
-            term.write('Hello from \x1B[1;3;31mxterm.js\x1B[0m $ ')
-        </script>
 
         <script>
             function listenForSystemEvents(onSystemEventReceived) {
@@ -103,13 +100,10 @@
                 }
             }
 
+            const term = new Terminal()
+            term.open(document.getElementById('terminal'))
             listenForSystemEvents(function(systemEvent) {
-                const p = document.createElement("p")
-                if(systemEvent.isError) {
-                    p.style.color = "red"
-                }
-                p.innerHTML = systemEvent.name
-                document.body.appendChild(p)
+                term.writeln(systemEvent.name)
             })
         </script>
     </body>

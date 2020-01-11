@@ -4,6 +4,7 @@
         <meta charset="utf-8"/>
         <link rel="stylesheet" type="text/css" href="styles.css"/>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.bundle.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/xterm/3.14.5/xterm.min.js"></script>
     </head>
     <body>
         <canvas id="pumpsChart" width="1200" height="400"></canvas>
@@ -39,7 +40,7 @@
                         var bottleName = pumpsConfiguration.pumps[i].bottle.name
                         bottleNames[i] = bottleName
                     }
-                    
+
                     for(var i=0; i<pumpsConfiguration.pumps.length; i++) {
                         var volume = pumpsConfiguration.pumps[i].bottle.currentVolumeMillilitres
                         volumes[i] = volume
@@ -85,45 +86,14 @@
                 }
             }
 
-            //            listenForSystemEvents(function() {
-            //                var ctx = document.getElementById('pumpsChart').getContext('2d');
-            //                var myChart = new Chart(ctx, {
-            //                    type: 'bar',
-            //                    data: {
-            //                        labels: bottleNames,
-            //                        datasets: [{
-            //                            label: '# of Votes',
-            //                            data: [12, 19, 3, 5, 2, 3],
-            //                            backgroundColor: [
-            //                                'rgba(255, 99, 132, 0.2)',
-            //                                'rgba(54, 162, 235, 0.2)',
-            //                                'rgba(255, 206, 86, 0.2)',
-            //                                'rgba(75, 192, 192, 0.2)',
-            //                                'rgba(153, 102, 255, 0.2)',
-            //                                'rgba(255, 159, 64, 0.2)'
-            //                            ],
-            //                            borderColor: [
-            //                                'rgba(255, 99, 132, 1)',
-            //                                'rgba(54, 162, 235, 1)',
-            //                                'rgba(255, 206, 86, 1)',
-            //                                'rgba(75, 192, 192, 1)',
-            //                                'rgba(153, 102, 255, 1)',
-            //                                'rgba(255, 159, 64, 1)'
-            //                            ],
-            //                            borderWidth: 1
-            //                        }]
-            //                    },
-            //                    options: {
-            //                        scales: {
-            //                            yAxes: [{
-            //                                ticks: {
-            //                                    beginAtZero: true
-            //                                }
-            //                            }]
-            //                        }
-            //                    }
-            //                });  
-            //            })
+            listenForSystemEvents(function(systemEvent) {
+                const p = document.createElement("p")
+                if(systemEvent.isError) {
+                    p.style.color = "red"
+                }
+                p.innerHTML = systemEvent.name
+                document.body.appendChild(p)
+            })
         </script>
     </body>
 </html>

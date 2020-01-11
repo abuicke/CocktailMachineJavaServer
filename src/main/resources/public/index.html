@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <meta charset="utf-8"/>
         <link rel="stylesheet" type="text/css" href="styles.css"/>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.bundle.min.js"></script>
     </head>
     <body>
-        <!--        <h1>Cocktail Machine System Monitor</h1>-->
+        <canvas id="pumpsChart" width="1200" height="400"></canvas>
+
         <script>
-            const listenForSystemEvents = function() {
+            function listenForSystemEvents(onSystemEventReceived) {
                 const xmlHttpRequest = new XMLHttpRequest()
                 const url = 'http://192.168.1.11/get_last_system_event'
                 xmlHttpRequest.open("GET", url)
@@ -15,39 +18,112 @@
                     if(this.readyState == 4 && this.status == 200) {
                         const systemEvent = JSON.parse(xmlHttpRequest.responseText)
                         if(systemEvent.name) {
-                            console.log("systemEvent = " + systemEvent.name)
-                            const p = document.createElement("p")
-                            if(systemEvent.isError) {
-                                p.style.color = "red"
-                            }
-                            p.innerHTML = systemEvent.name
-                            document.body.appendChild(p)
+                            onSystemEventReceived(systemEvent)
                         }
-                        window.setTimeout(listenForSystemEvents, 100)
+                        window.setTimeout(listenForSystemEvents(onSystemEventReceived), 100)
                     }
                 }
             }
-            //            listenForSystemEvents()
-        </script>
 
-        <div id ="myContainer">
-            <div id ="myAnimation"></div>
-        </div>
+            const xmlHttpRequest = new XMLHttpRequest()
+            const url = 'http://192.168.1.11/get_pumps_configuration'
+            xmlHttpRequest.open("GET", url)
+            xmlHttpRequest.send()
+            xmlHttpRequest.onreadystatechange = function() {
+                if(this.readyState == 4 && this.status == 200) {
+                    const pumpsConfiguration = JSON.parse(xmlHttpRequest.responseText)
+                    const bottleNames = []
+                    const volumes = []
 
-        <script>
-            (function () {
-                var elem = document.getElementById("myAnimation");
-                var pos = 0;
-                var id = setInterval(frame, 10);
-                function frame() {
-                    if (pos == 400) {
-                        clearInterval(id);
-                    } else {
-                        pos++;
-                        elem.style.height = pos + 'px'
+                    for(var i=0; i<pumpsConfiguration.pumps.length; i++) {
+                        var bottleName = pumpsConfiguration.pumps[i].bottle.name
+                        bottleNames[i] = bottleName
                     }
+                    
+                    for(var i=0; i<pumpsConfiguration.pumps.length; i++) {
+                        var volume = pumpsConfiguration.pumps[i].bottle.currentVolumeMillilitres
+                        volumes[i] = volume
+                    }
+
+                    var ctx = document.getElementById('pumpsChart').getContext('2d');
+                    var myChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: bottleNames,
+                            datasets: [{
+                                label: 'Volume in mls',
+                                data: volumes,
+                                backgroundColor: [
+                                    'rgba(255, 99, 132, 0.2)',
+                                    'rgba(54, 162, 235, 0.2)',
+                                    'rgba(255, 206, 86, 0.2)',
+                                    'rgba(75, 192, 192, 0.2)',
+                                    'rgba(153, 102, 255, 0.2)',
+                                    'rgba(255, 159, 64, 0.2)'
+                                ],
+                                borderColor: [
+                                    'rgba(255, 99, 132, 1)',
+                                    'rgba(54, 162, 235, 1)',
+                                    'rgba(255, 206, 86, 1)',
+                                    'rgba(75, 192, 192, 1)',
+                                    'rgba(153, 102, 255, 1)',
+                                    'rgba(255, 159, 64, 1)'
+                                ],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                yAxes: [{
+                                    ticks: {
+                                        beginAtZero: true
+                                    }
+                                }]
+                            }
+                        }
+                    }); 
                 }
-            }())
+            }
+
+            //            listenForSystemEvents(function() {
+            //                var ctx = document.getElementById('pumpsChart').getContext('2d');
+            //                var myChart = new Chart(ctx, {
+            //                    type: 'bar',
+            //                    data: {
+            //                        labels: bottleNames,
+            //                        datasets: [{
+            //                            label: '# of Votes',
+            //                            data: [12, 19, 3, 5, 2, 3],
+            //                            backgroundColor: [
+            //                                'rgba(255, 99, 132, 0.2)',
+            //                                'rgba(54, 162, 235, 0.2)',
+            //                                'rgba(255, 206, 86, 0.2)',
+            //                                'rgba(75, 192, 192, 0.2)',
+            //                                'rgba(153, 102, 255, 0.2)',
+            //                                'rgba(255, 159, 64, 0.2)'
+            //                            ],
+            //                            borderColor: [
+            //                                'rgba(255, 99, 132, 1)',
+            //                                'rgba(54, 162, 235, 1)',
+            //                                'rgba(255, 206, 86, 1)',
+            //                                'rgba(75, 192, 192, 1)',
+            //                                'rgba(153, 102, 255, 1)',
+            //                                'rgba(255, 159, 64, 1)'
+            //                            ],
+            //                            borderWidth: 1
+            //                        }]
+            //                    },
+            //                    options: {
+            //                        scales: {
+            //                            yAxes: [{
+            //                                ticks: {
+            //                                    beginAtZero: true
+            //                                }
+            //                            }]
+            //                        }
+            //                    }
+            //                });  
+            //            })
         </script>
     </body>
 </html>
